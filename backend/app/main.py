@@ -1,16 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes import router as api_router # Importe o router
 
 app = FastAPI(title="Video Player API")
 
-# Configuração de CORS para permitir que o Frontend (React) se comunique com o Backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"], # Portas comuns do React/Vite
+    allow_origins=["*"], # Em desenvolvimento, podemos ser mais permissivos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Inclui as rotas que acabamos de criar
+app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 async def root():
