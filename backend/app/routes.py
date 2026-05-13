@@ -12,12 +12,21 @@ async def create_video(video: VideoModel):
     # Insere um novo vídeo no banco
     new_video = await video_collection.insert_one(video.model_dump(by_alias=True, exclude_unset=True))
     created_video = await video_collection.find_one({"_id": new_video.inserted_id})
+    
+    # Adicionamos esta linha para converter o ObjectId para string
+    created_video["_id"] = str(created_video["_id"]) 
+    
     return created_video
 
 @router.get("/videos/", response_model=List[VideoModel])
 async def list_videos():
     # Implementa a parte de "Seleciona Video" do diagrama
     videos = await video_collection.find().to_list(100)
+    
+    # Adicionamos este loop para converter o ObjectId de cada vídeo da lista
+    for video in videos:
+        video["_id"] = str(video["_id"])
+        
     return videos
 
 # --- Rotas de Preferências ---
