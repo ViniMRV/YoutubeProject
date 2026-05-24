@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-function VideoList({ onSelectVideo }) {
+function VideoList({ onSelectVideo, searchText }) {
   const [videos, setVideos] = useState([]);
 
   useEffect(() => {
@@ -15,25 +15,36 @@ function VideoList({ onSelectVideo }) {
       });
   }, []);
 
+  const filteredVideos = videos.filter((video) => video.titulo.toLowerCase().includes(searchText.toLowerCase()));
+
   return (
     <div>
       <h2>Vídeos Disponíveis</h2>
-      {videos.length === 0 ? (
-        <p>A carregar vídeos...</p>
-      ) : (
-        <ul>
-          {videos.map((video) => (
-            <li key={video._id} style={{ marginBottom: '10px' }}>
-              <strong>{video.titulo}</strong>
-              <button 
-                onClick={() => onSelectVideo(video)} 
-                style={{ marginLeft: '10px' }}
-              >
-                Assistir
-              </button>
-            </li>
-          ))}
-        </ul>
+      {videos.length === 0 ? ( <p>A carregar vídeos...</p> ) : filteredVideos.length === 0 ? ( <p>Nenhum vídeo encontrado.</p>) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {filteredVideos.map((video) => (
+            <div
+              key={video._id}
+              onClick={() => onSelectVideo(video)}
+              style={{display: 'flex', gap: '16px', padding: '12px', borderRadius: '12px', backgroundColor: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', alignItems: 'center'}}
+            >
+            <img
+              src={video.thumbnail || 'https://via.placeholder.com/240x135?text=Video'}
+              style={{ width: '240px', height: '135px', objectFit: 'cover', borderRadius: '8px', backgroundColor: '#ddd'}}
+            />
+
+            <div>
+              <h3 style={{margin: '0 0 8px 0', fontSize: '20px',color: '#111'}}>
+                {video.titulo}
+              </h3>
+
+              <p style={{margin: 0, color: '#666', fontSize: '14px'}}>
+                Duração: {video.duracao_segundos} segundos
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
       )}
     </div>
   );
