@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-function VideoList({ onSelectVideo, searchText }) {
+function VideoList({ onSelectVideo, searchText, refreshVideos }) {
   const [videos, setVideos] = useState([]);
 
   useEffect(() => {
-    // Faz a chamada GET para o nosso backend FastAPI
     axios.get('http://localhost:8000/api/videos/')
       .then(response => {
         setVideos(response.data);
@@ -13,7 +12,7 @@ function VideoList({ onSelectVideo, searchText }) {
       .catch(error => {
         console.error("Erro ao buscar os vídeos:", error);
       });
-  }, []);
+  }, [refreshVideos]);
 
   const filteredVideos = videos.filter((video) => video.titulo.toLowerCase().includes(searchText.toLowerCase()));
 

@@ -5,7 +5,9 @@ from typing import Optional
 class VideoModel(BaseModel):
     id: Optional[str] = Field(alias="_id", default=None)
     titulo: str
+    descricao: Optional[str] = None
     url: str
+    thumbnail: Optional[str] = None
     duracao_segundos: int
 
 # Baseado no bloco "Preferências do usuário" e ações de alteração de estado do diagrama

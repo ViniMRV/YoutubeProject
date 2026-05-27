@@ -27,13 +27,27 @@ function VideoPlayer({ video, onBack, onSelectVideo }) {
       </button>
 
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, maxWidth: '1000px' }}>
-          <video 
+        <div 
+          style={{
+            width: '100%',
+            aspectRatio: '16 / 9',
+            backgroundColor: 'black',
+            borderRadius: '12px',
+            overflow: 'hidden',
+          }}
+        >
+          <video
             ref={videoRef}
-            src={video.url} 
-            controls 
-            style={{ width: '100%', backgroundColor: 'black', borderRadius: '12px', display: 'block'}}
-          >
+            src={video.url}
+            controls
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              backgroundColor: 'black',        
+            }}        
+          >        
             Seu navegador não suporta a tag de vídeo.
           </video>
 

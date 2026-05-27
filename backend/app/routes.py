@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from app.models import VideoModel, UserPreferencesModel, VideoProgressModel
 from app.database import video_collection, preferences_collection
 from typing import List
+import shutil
+import os
+from uuid import uuid4
 
 router = APIRouter()
 
@@ -49,3 +52,39 @@ async def update_preferences(user_id: str, prefs: UserPreferencesModel):
         upsert=True
     )
     return {"message": "Preferências atualizadas com sucesso"}
+
+@router.post("/videos/upload", response_model=VideoModel)
+async def upload_video(
+    titulo: str = Form(...),
+    descricao: str = Form(""),
+    duracao_segundos: int = Form(...),
+    thumbnail: UploadFile = File(...),
+    video: UploadFile = File(...)
+):
+    os.makedirs("uploads", exist_ok=True)
+
+    thumbnail_filename = f"{uuid4()}_{thumbnail.filename}"
+    video_filename = f"{uuid4()}_{video.filename}"
+
+    thumbnail_path = f"uploads/{thumbnail_filename}"
+    video_path = f"uploads/{video_filename}"
+
+    with open(thumbnail_path, "wb") as buffer:
+        shutil.copyfileobj(thumbnail.file, buffer)
+
+    with open(video_path, "wb") as buffer:
+        shutil.copyfileobj(video.file, buffer)
+
+    video_data = {
+        "titulo": titulo,
+        "descricao": descricao,
+        "duracao_segundos": duracao_segundos,
+        "thumbnail": f"http://localhost:8000/uploads/{thumbnail_filename}",
+        "url": f"http://localhost:8000/uploads/{video_filename}"
+    }
+
+    new_video = await video_collection.insert_one(video_data)
+    created_video = await video_collection.find_one({"_id": new_video.inserted_id})
+    created_video["_id"] = str(created_video["_id"])
+
+    return created_video
