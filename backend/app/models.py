@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 # Baseado no bloco "Videos" do seu diagrama
 class VideoModel(BaseModel):
@@ -24,3 +24,11 @@ class VideoProgressModel(BaseModel):
     video_id: str
     tempo_atual_segundos: int = 0
     pausado: bool = True
+
+
+class UserModel(BaseModel):
+    id: Optional[str] = Field(alias="_id", default=None)
+    nome: str
+    videos_publicados: List[str] = []
+    playlists: List[str] = []
+    historico: List[str] = []

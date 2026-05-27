@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from app.models import VideoModel, UserPreferencesModel, VideoProgressModel
-from app.database import video_collection, preferences_collection
+from app.models import VideoModel, UserPreferencesModel, VideoProgressModel, UserModel
+from app.database import video_collection, preferences_collection, users_collection
 from typing import List
 import shutil
 import os
@@ -88,3 +88,25 @@ async def upload_video(
     created_video["_id"] = str(created_video["_id"])
 
     return created_video
+
+@router.post("/users/", response_model=UserModel)
+async def create_user(user: UserModel):
+    new_user = await users_collection.insert_one(
+        user.model_dump(by_alias=True, exclude_unset=True)
+    )
+
+    created_user = await users_collection.find_one({"_id": new_user.inserted_id})
+    created_user["_id"] = str(created_user["_id"])
+
+    return created_user
+
+
+@router.get("/users/{user_id}", response_model=UserModel)
+async def get_user(user_id: str):
+    user = await users_collection.find_one({"_id": user_id})
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    user["_id"] = str(user["_id"])
+    return user
