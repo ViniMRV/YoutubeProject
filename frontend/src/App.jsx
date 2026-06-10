@@ -60,15 +60,17 @@ function App() {
               user={user}
               onBack={handleBackFromChannel}
               onPostVideo={() => setShowUploadForm(true)}
+              onSelectVideo={handleSelectVideo}
+              refreshVideos={refreshVideos}
             />
 
             {showUploadForm && (
               <UploadVideoForm
                 onClose={() => setShowUploadForm(false)}
+                canalId={user.nome}
                 onVideoCreated={() => {
                   setRefreshVideos(refreshVideos + 1);
                   setShowUploadForm(false);
-                  setShowChannelPage(false);
                 }}
               />
             )}

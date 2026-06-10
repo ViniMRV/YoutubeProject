@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-function UploadVideoForm({ onClose, onVideoCreated }) {
+function UploadVideoForm({ onClose, onVideoCreated, canalId }) {
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [duracao, setDuracao] = useState('');
@@ -15,6 +15,7 @@ function UploadVideoForm({ onClose, onVideoCreated }) {
     formData.append('titulo', titulo);
     formData.append('descricao', descricao);
     formData.append('duracao_segundos', duracao);
+    formData.append('canal_id', canalId || '');
     formData.append('thumbnail', thumbnail);
     formData.append('video', video);
 

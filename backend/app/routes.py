@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from app.models import VideoModel, UserPreferencesModel, VideoProgressModel, UserModel
 from app.database import video_collection, preferences_collection, users_collection
-from typing import List
+from typing import List, Optional
+from bson import ObjectId
 import shutil
 import os
 from uuid import uuid4
@@ -22,15 +23,38 @@ async def create_video(video: VideoModel):
     return created_video
 
 @router.get("/videos/", response_model=List[VideoModel])
-async def list_videos():
-    # Implementa a parte de "Seleciona Video" do diagrama
-    videos = await video_collection.find().to_list(100)
-    
-    # Adicionamos este loop para converter o ObjectId de cada vídeo da lista
+async def list_videos(canal_id: Optional[str] = Query(default=None)):
+    filtro = {"canal_id": canal_id} if canal_id else {}
+    videos = await video_collection.find(filtro).to_list(100)
     for video in videos:
         video["_id"] = str(video["_id"])
-        
     return videos
+
+def _parse_id(video_id: str):
+    try:
+        return ObjectId(video_id)
+    except Exception:
+        return video_id
+
+
+@router.delete("/videos/{video_id}")
+async def delete_video(video_id: str):
+    result = await video_collection.delete_one({"_id": _parse_id(video_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Vídeo não encontrado")
+    return {"message": "Vídeo deletado com sucesso"}
+
+
+@router.patch("/videos/{video_id}/canal")
+async def assign_canal(video_id: str, canal_id: str = Query(...)):
+    result = await video_collection.update_one(
+        {"_id": _parse_id(video_id)},
+        {"$set": {"canal_id": canal_id}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Vídeo não encontrado")
+    return {"message": "canal_id atualizado"}
+
 
 # --- Rotas de Preferências ---
 
@@ -58,6 +82,7 @@ async def upload_video(
     titulo: str = Form(...),
     descricao: str = Form(""),
     duracao_segundos: int = Form(...),
+    canal_id: str = Form(""),
     thumbnail: UploadFile = File(...),
     video: UploadFile = File(...)
 ):
@@ -79,6 +104,7 @@ async def upload_video(
         "titulo": titulo,
         "descricao": descricao,
         "duracao_segundos": duracao_segundos,
+        "canal_id": canal_id or None,
         "thumbnail": f"http://localhost:8000/uploads/{thumbnail_filename}",
         "url": f"http://localhost:8000/uploads/{video_filename}"
     }

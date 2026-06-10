@@ -9,6 +9,7 @@ class VideoModel(BaseModel):
     url: str
     thumbnail: Optional[str] = None
     duracao_segundos: int
+    canal_id: Optional[str] = None
 
 # Baseado no bloco "Preferências do usuário" e ações de alteração de estado do diagrama
 class UserPreferencesModel(BaseModel):
