@@ -12,5 +12,5 @@ database = client[DATABASE_NAME]
 
 video_collection = database.get_collection("videos")
 preferences_collection = database.get_collection("preferencias_usuario")
-
+playlists_collection = database.get_collection("playlists")
 users_collection = database.get_collection("usuarios")
