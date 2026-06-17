@@ -15,13 +15,11 @@ _in_memory_playlists = {}
 
 def _serialize_playlist(playlist: dict) -> dict:
     data = dict(playlist)
-    if "id" not in data and "_id" in data:
-        data["id"] = str(data["_id"])
+    # Sempre mapeia _id para id
+    if "_id" in data:
+        data["id"] = str(data.pop("_id"))
     elif "id" not in data:
         data["id"] = str(uuid4())
-
-    if "_id" in data:
-        data.pop("_id", None)
 
     data.setdefault("videos", [])
     data.setdefault("publica", False)
@@ -168,8 +166,7 @@ async def create_playlist(playlist: PlaylistModel):
     try:
         new_playlist = await playlists_collection.insert_one(playlist_data)
         created_playlist = await playlists_collection.find_one({"_id": new_playlist.inserted_id})
-        created_playlist["_id"] = str(created_playlist["_id"])
-        return created_playlist
+        return _serialize_playlist(created_playlist)
     except Exception:
         playlist_id = str(uuid4())
         playlist_data["id"] = playlist_id
@@ -215,8 +212,7 @@ async def update_playlist(playlist_id: str, playlist_update: PlaylistModel):
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Playlist não encontrada")
         updated_playlist = await playlists_collection.find_one({"_id": _parse_id(playlist_id)})
-        updated_playlist["_id"] = str(updated_playlist["_id"])
-        return updated_playlist
+        return _serialize_playlist(updated_playlist)
     except Exception:
         if playlist_id not in _in_memory_playlists:
             raise HTTPException(status_code=404, detail="Playlist não encontrada")

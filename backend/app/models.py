@@ -28,13 +28,15 @@ class VideoProgressModel(BaseModel):
 
 
 class PlaylistModel(BaseModel):
-    id: Optional[str] = Field(alias="_id", default=None)
+    id: Optional[str] = Field(default=None)
     nome: str
     descricao: Optional[str] = None
     usuario_id: str
     videos: List[str] = []  # Lista de IDs de vídeos
     data_criacao: Optional[str] = None
     publica: bool = False
+
+    model_config = {"populate_by_name": True}
 
 
 class UserModel(BaseModel):

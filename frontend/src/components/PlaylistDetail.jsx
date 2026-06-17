@@ -11,6 +11,9 @@ function PlaylistDetail({ playlist, userId, onBack }) {
   const [allVideos, setAllVideos] = useState([]);
   const [showAddVideo, setShowAddVideo] = useState(false);
 
+  // Garante que pegamos o id independente de como o backend serializa
+  const playlistId = playlist.id || playlist._id;
+
   useEffect(() => {
     loadPlaylistVideos();
     loadAllVideos();
@@ -20,7 +23,7 @@ function PlaylistDetail({ playlist, userId, onBack }) {
     try {
       setLoading(true);
       // Busca os IDs dos vídeos da playlist
-      const playlistResponse = await axios.get(`${API_BASE_URL}/playlists/${playlist.id}`);
+      const playlistResponse = await axios.get(`${API_BASE_URL}/playlists/${playlistId}`);
       
       // Busca os dados completos de cada vídeo
       if (playlistResponse.data.videos && playlistResponse.data.videos.length > 0) {
@@ -52,7 +55,7 @@ function PlaylistDetail({ playlist, userId, onBack }) {
 
   const handleAddVideoToPlaylist = async (videoId) => {
     try {
-      await axios.post(`${API_BASE_URL}/playlists/${playlist.id}/videos/${videoId}`);
+      await axios.post(`${API_BASE_URL}/playlists/${playlistId}/videos/${videoId}`);
       alert('Vídeo adicionado à playlist!');
       setShowAddVideo(false);
       loadPlaylistVideos();
@@ -68,7 +71,7 @@ function PlaylistDetail({ playlist, userId, onBack }) {
     }
 
     try {
-      await axios.delete(`${API_BASE_URL}/playlists/${playlist.id}/videos/${videoId}`);
+      await axios.delete(`${API_BASE_URL}/playlists/${playlistId}/videos/${videoId}`);
       setVideos(videos.filter(v => v.id !== videoId && v._id !== videoId));
       alert('Vídeo removido da playlist!');
     } catch (error) {
