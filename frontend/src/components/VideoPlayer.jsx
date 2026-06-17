@@ -1,6 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
+// Converte qualquer URL do YouTube para a URL de embed
+function getYouTubeEmbedUrl(url) {
+  if (!url) return null;
+  // Formato: https://www.youtube.com/watch?v=VIDEO_ID
+  const watchMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (watchMatch) {
+    return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  }
+  // Já é uma URL de embed
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  return null;
+}
+
 function VideoPlayer({ video, onBack, onSelectVideo }) {
   const videoRef = useRef(null);
   const [videos, setVideos] = useState([]);
@@ -27,29 +42,46 @@ function VideoPlayer({ video, onBack, onSelectVideo }) {
       </button>
 
       <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-        <div 
-          style={{
-            width: '100%',
-            aspectRatio: '16 / 9',
-            backgroundColor: 'black',
-            borderRadius: '12px',
-            overflow: 'hidden',
-          }}
-        >
-          <video
-            ref={videoRef}
-            src={video.url}
-            controls
+        <div style={{ width: '100%' }}>
+          <div
             style={{
               width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              display: 'block',
-              backgroundColor: 'black',        
-            }}        
-          >        
-            Seu navegador não suporta a tag de vídeo.
-          </video>
+              aspectRatio: '16 / 9',
+              backgroundColor: 'black',
+              borderRadius: '12px',
+              overflow: 'hidden',
+            }}
+          >
+            {getYouTubeEmbedUrl(video.url) ? (
+              <iframe
+                src={getYouTubeEmbedUrl(video.url)}
+                title={video.titulo}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  display: 'block',
+                }}
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={video.url}
+                controls
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  display: 'block',
+                  backgroundColor: 'black',
+                }}
+              >
+                Seu navegador não suporta a tag de vídeo.
+              </video>
+            )}
+          </div>
 
           <h2 style={{ marginTop: '16px', fontSize: '28px', color: '#111' }}>
             {video.titulo}
