@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
-function VideoPlayer({ video, onBack, onSelectVideo }) {
+function VideoPlayer({ video, onBack, onSelectVideo, user }) {
   const videoRef = useRef(null);
   const [videos, setVideos] = useState([]);
+
+  useEffect(() => {
+    if (video && user) {
+      axios.post(`http://localhost:8000/api/users/${user.nome}/historico/${video._id}`)
+        .catch(error => console.error("Erro ao registrar histórico:", error));
+    }
+  }, [video, user]);
 
   useEffect(() => {
     axios.get('http://localhost:8000/api/videos/')

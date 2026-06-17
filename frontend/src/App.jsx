@@ -145,6 +145,7 @@ function App() {
                 video={videoAtual}
                 onBack={handleBack}
                 onSelectVideo={handleSelectVideo}
+                user={user}
               />
             )}
           </>
