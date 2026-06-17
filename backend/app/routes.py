@@ -285,3 +285,51 @@ async def remove_video_from_playlist(playlist_id: str, video_id: str):
             item for item in _in_memory_playlists[playlist_id].get("videos", []) if item != video_id
         ]
         return {"message": "Vídeo removido da playlist com sucesso"}
+    
+# --- Rotas de Histórico ---
+
+@router.post("/users/{user_id}/historico/{video_id}")
+async def add_video_to_history(user_id: str, video_id: str):
+    """Adiciona um vídeo ao histórico do usuário."""
+    # O frontend atual utiliza o nome do usuário como ID em alguns contextos
+    user = await users_collection.find_one({"$or": [{"_id": _parse_id(user_id)}, {"nome": user_id}]})
+    
+    if not user:
+        # Cria um usuário sob demanda caso não exista (baseado no mock do frontend)
+        novo_usuario = {"nome": user_id, "videos_publicados": [], "playlists": [], "historico": [video_id]}
+        await users_collection.insert_one(novo_usuario)
+        return {"message": "Vídeo adicionado ao histórico"}
+
+    # Remove o vídeo do histórico atual (se existir) para evitar duplicatas consecutivas
+    await users_collection.update_one(
+        {"_id": user["_id"]},
+        {"$pull": {"historico": video_id}}
+    )
+    
+    # Adiciona o vídeo no final da lista (mais recente)
+    await users_collection.update_one(
+        {"_id": user["_id"]},
+        {"$push": {"historico": video_id}}
+    )
+    
+    return {"message": "Vídeo adicionado ao histórico"}
+
+@router.get("/users/{user_id}/historico", response_model=List[VideoModel])
+async def get_user_history(user_id: str):
+    """Obtém o histórico de vídeos do usuário, retornando os detalhes do vídeo."""
+    user = await users_collection.find_one({"$or": [{"_id": _parse_id(user_id)}, {"nome": user_id}]})
+    
+    if not user or not user.get("historico"):
+        return []
+        
+    historico_ids = user["historico"]
+    videos_historico = []
+    
+    # Inverte a lista para trazer os recém assistidos primeiro
+    for vid_id in reversed(historico_ids):
+        video = await video_collection.find_one({"_id": _parse_id(vid_id)})
+        if video:
+            video["_id"] = str(video["_id"])
+            videos_historico.append(video)
+            
+    return videos_historico

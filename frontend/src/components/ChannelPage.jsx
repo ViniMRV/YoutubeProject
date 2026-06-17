@@ -157,7 +157,7 @@ function ChannelPage({ user, onBack, onPostVideo, onSelectVideo, refreshVideos }
             <PlaceholderTab mensagem="Playlists em breve." />
           )}
           {activeTab === 'historico' && (
-            <PlaceholderTab mensagem="Histórico em breve." />
+            <HistoricoTab user={user} onSelectVideo={onSelectVideo} />
           )}
         </div>
       </div>
@@ -222,6 +222,92 @@ function PlaceholderTab({ mensagem }) {
     <p style={{ color: '#aaa', textAlign: 'center', padding: '32px 0', fontStyle: 'italic' }}>
       {mensagem}
     </p>
+  );
+}
+
+function HistoricoTab({ user, onSelectVideo }) {
+  const [historico, setHistorico] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState('');
+
+  useEffect(() => {
+    setLoading(true);
+    axios.get(`http://localhost:8000/api/users/${user.nome}/historico`)
+      .then((res) => setHistorico(res.data))
+      .catch((err) => console.error('Erro ao buscar histórico:', err))
+      .finally(() => setLoading(false));
+  }, [user.nome]);
+
+  const historicoFiltrado = historico.filter(video => 
+    video.titulo.toLowerCase().includes(busca.toLowerCase())
+  );
+
+  if (loading) {
+    return <p style={{ color: '#666', textAlign: 'center' }}>Carregando histórico...</p>;
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
+        <input 
+          type="text" 
+          placeholder="Buscar vídeos assistidos..." 
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          style={{ 
+            width: '100%', 
+            maxWidth: '500px', 
+            padding: '12px 16px', 
+            borderRadius: '24px', 
+            border: '1px solid #ccc', 
+            fontSize: '15px', 
+            outline: 'none' 
+          }}
+        />
+      </div>
+
+      {historico.length === 0 ? (
+        <p style={{ color: '#666', textAlign: 'center', padding: '32px 0' }}>
+          Seu histórico de visualização está vazio.
+        </p>
+      ) : historicoFiltrado.length === 0 ? (
+        <p style={{ color: '#666', textAlign: 'center', padding: '32px 0' }}>
+          Nenhum vídeo no histórico corresponde à sua busca.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {historicoFiltrado.map((video) => (
+            <div 
+              key={video._id} 
+              onClick={() => onSelectVideo(video)}
+              style={{ 
+                display: 'flex', 
+                gap: '16px', 
+                padding: '12px', 
+                backgroundColor: 'white', 
+                borderRadius: '8px', 
+                cursor: 'pointer', 
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)' 
+              }}
+            >
+              <img 
+                src={video.thumbnail || 'https://via.placeholder.com/160x90?text=Video'} 
+                alt={video.titulo}
+                style={{ width: '160px', height: '90px', objectFit: 'cover', borderRadius: '8px' }}
+              />
+              <div style={{ flex: 1 }}>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#111' }}>
+                  {video.titulo}
+                </h4>
+                <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#666' }}>
+                  {video.canal_id} • {video.duracao_segundos} segundos
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
